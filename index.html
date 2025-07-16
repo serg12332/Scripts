@@ -7,6 +7,52 @@
     <link rel="stylesheet" href="css/Style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        /* Стили для индикатора загрузки */
+        .download-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            display: none;
+        }
+        
+        .download-box {
+            background-color: var(--primary-color);
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            border: 1px solid var(--accent-color);
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .download-text {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Верхнее меню -->
@@ -17,11 +63,21 @@
             </div>
             <div class="control-buttons">
                 <a href="Index.html"><button class="control-btn">Главная</button></a>
-                <button class="control-btn" onclick="createAndDownloadZip()">Скачать</button>  <!-- Заменили ссылку на кнопку -->
+                <button class="control-btn" id="downloadBtn">Скачать</button>
                 <a href="info.html"><button class="control-btn">О нас</button></a>
             </div>
         </div>
     </header>
+
+    <!-- Индикатор загрузки -->
+    <div class="download-overlay" id="downloadOverlay">
+        <div class="download-box">
+            <div class="download-text">Подготовка архива...</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Основное содержимое -->
     <main class="main-content">
@@ -79,46 +135,90 @@
     </main>
 
     <script>
-        async function createAndDownloadZip() {
-            const zip = new JSZip();
-
-            // Укажите здесь пути к файлам, которые нужно добавить в архив
-            const filePaths = [
-                "Img/ЯЧ.png",
-                "Img/Frame 8.png",
-                "Vid/ркм.mp4",
-                "css/Style.css",
-                "js/script.js"
-                // Добавьте больше путей к файлам, если необходимо
-            ];
-
-            for (const filePath of filePaths) {
-                try {
-                    const response = await fetch(filePath);
-                    if (!response.ok) {
-                        throw new Error(`Ошибка загрузки файла ${filePath}: ${response.status}`);
-                    }
-                    const fileContent = await response.blob();
-                    zip.file(filePath, fileContent);
-                } catch (error) {
-                    console.error(`Ошибка при обработке файла ${filePath}:`, error);
-                    alert(`Ошибка при обработке файла ${filePath}: ${error.message}`);
-                    return;
-                }
+        // Обработчик кнопки скачивания
+        document.getElementById('downloadBtn').addEventListener('click', createAndDownloadZip);
+        
+        // Обработчик кнопки звука
+        const video = document.getElementById('myVideo');
+        const muteBtn = document.getElementById('muteBtn');
+        
+        muteBtn.addEventListener('click', function() {
+            if (video.muted) {
+                video.muted = false;
+                muteBtn.textContent = '🔊';
+            } else {
+                video.muted = true;
+                muteBtn.textContent = '🔇';
             }
+        });
 
-            zip.generateAsync({ type: "blob" })
-                .then(function (content) {
-                    saveAs(content, "archive.zip");
+        async function createAndDownloadZip() {
+            const overlay = document.getElementById('downloadOverlay');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Показываем индикатор загрузки
+            overlay.style.display = 'flex';
+            
+            try {
+                const zip = new JSZip();
+                const filePaths = [
+                    "Img/ЯЧ.png",
+                    "Img/Frame 8.png",
+                    "Vid/ркм.mp4",
+                    "css/Style.css",
+                    "js/script.js"
+                ];
+                
+                let loadedFiles = 0;
+                const totalFiles = filePaths.length;
+                
+                // Обновляем прогресс
+                function updateProgress() {
+                    loadedFiles++;
+                    const progress = Math.round((loadedFiles / totalFiles) * 100);
+                    progressBar.style.width = progress + '%';
+                    
+                    if (loadedFiles === totalFiles) {
+                        document.querySelector('.download-text').textContent = 'Завершение...';
+                    }
+                }
+                
+                // Добавляем файлы в архив
+                for (const filePath of filePaths) {
+                    try {
+                        const response = await fetch(filePath);
+                        if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+                        
+                        const fileContent = await response.blob();
+                        zip.file(filePath, fileContent);
+                        updateProgress();
+                    } catch (error) {
+                        console.error(`Ошибка при обработке файла ${filePath}:`, error);
+                        throw error;
+                    }
+                }
+                
+                // Генерируем архив
+                document.querySelector('.download-text').textContent = 'Создание архива...';
+                const content = await zip.generateAsync({ type: "blob" }, metadata => {
+                    const progress = Math.round(metadata.percent);
+                    progressBar.style.width = progress + '%';
                 });
-        }
-
-        // Получаем ссылку на текущий js файл, чтобы в html не добавлять новый
-        const script = document.querySelector('script[src="js/script.js"]');
-
-        // Если скрипт найден, то вставляем код в него
-        if (script) {
-            script.textContent += `\n${createAndDownloadZip.toString()}`;
+                
+                // Скачиваем архив
+                saveAs(content, "archive.zip");
+                
+            } catch (error) {
+                console.error('Ошибка при создании архива:', error);
+                alert('Произошла ошибка при создании архива: ' + error.message);
+            } finally {
+                // Скрываем индикатор через 1 секунду после завершения/ошибки
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    document.querySelector('.download-text').textContent = 'Подготовка архива...';
+                }, 1000);
+            }
         }
     </script>
 </body>
