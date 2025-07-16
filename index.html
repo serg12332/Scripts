@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scripts</title>
-    <link rel="stylesheet" href="css/Style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
     <!-- Верхнее меню -->
     <header class="header" id="header">
         <div class="header-container">
             <div class="logo">
-                <img src="img/ЯЧ.png" alt="Логотип">
+                <img src="" alt="Логотип">
             </div>
             <div class="control-buttons">
                 <a href="Index.html"><button class="control-btn">Главная</button></a>
-                <a href="Download/download.php"><button class="control-btn">Скачать</button></a>
+                <button class="control-btn" onclick="createAndDownloadZip()">Скачать</button>  <!-- Заменили ссылку на кнопку -->
                 <a href="info.html"><button class="control-btn">О нас</button></a>
             </div>
         </div>
@@ -76,6 +78,48 @@
         </section>
     </main>
 
-    <script src="js/script.js"></script>
+    <script>
+        async function createAndDownloadZip() {
+            const zip = new JSZip();
+
+            // Укажите здесь пути к файлам, которые нужно добавить в архив
+            const filePaths = [
+                "/Img/ЯЧ.png",
+                "/Img/Frame 8.png",
+                "/Vid/ркм.mp4",
+                "/css/Style.css",
+                "/js/script.js"
+                // Добавьте больше путей к файлам, если необходимо
+            ];
+
+            for (const filePath of filePaths) {
+                try {
+                    const response = await fetch(filePath);
+                    if (!response.ok) {
+                        throw new Error(`Ошибка загрузки файла ${filePath}: ${response.status}`);
+                    }
+                    const fileContent = await response.blob();
+                    zip.file(filePath, fileContent);
+                } catch (error) {
+                    console.error(`Ошибка при обработке файла ${filePath}:`, error);
+                    alert(`Ошибка при обработке файла ${filePath}: ${error.message}`);
+                    return;
+                }
+            }
+
+            zip.generateAsync({ type: "blob" })
+                .then(function (content) {
+                    saveAs(content, "archive.zip");
+                });
+        }
+
+        // Получаем ссылку на текущий js файл, чтобы в html не добавлять новый
+        const script = document.querySelector('script[src="js/script.js"]');
+
+        // Если скрипт найден, то вставляем код в него
+        if (script) {
+            script.textContent += `\n${createAndDownloadZip.toString()}`;
+        }
+    </script>
 </body>
 </html>
