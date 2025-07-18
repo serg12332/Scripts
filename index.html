@@ -3,11 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scripts</title>
+    <title>Scripts - Главная</title>
+    <!-- Подключение стилей -->
     <link rel="stylesheet" href="css/Style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <!-- Подключение библиотек для работы с ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
+        /* Основные стили */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --light-gray: #bdc3c7;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Стили для шапки */
+        .header {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo img {
+            height: 50px;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        /* Стили для основного контента */
+        .main-content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Стили для баннера */
+        .banner-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .banner-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Стили для видео-секции */
+        .video-section {
+            margin: 50px 0;
+            text-align: center;
+        }
+        
+        .video-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        video {
+            max-width: 100%;
+            display: block;
+        }
+        
+        .custom-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+        }
+        
+        .mute-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mute-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+        
+        /* Стили для блоков с контентом */
+        .content-block {
+            display: flex;
+            align-items: center;
+            margin: 50px 0;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .rotated-image {
+            width: 350px;
+            height: auto;
+            border-radius: 8px;
+            transform: rotate(-3deg);
+            margin-right: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-block:hover .rotated-image {
+            transform: rotate(0deg);
+        }
+        
+        .text-content {
+            flex: 1;
+        }
+        
+        .text-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        
+        .text-content p {
+            color: #555;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
         /* Стили для индикатора загрузки */
         .download-overlay {
             position: fixed;
@@ -15,7 +193,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -27,39 +205,64 @@
             background-color: var(--primary-color);
             padding: 30px;
             border-radius: 10px;
-            width: 300px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 350px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             text-align: center;
-            border: 1px solid var(--accent-color);
+            border: 2px solid var(--accent-color);
+            color: white;
         }
         
         .progress-container {
             width: 100%;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
-            margin: 15px 0;
+            margin: 20px 0;
             overflow: hidden;
         }
         
         .progress-bar {
-            height: 10px;
+            height: 12px;
             background-color: var(--accent-color);
             width: 0%;
             transition: width 0.3s ease;
         }
         
         .download-text {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .content-block {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .rotated-image {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+                transform: rotate(0deg);
+            }
+            
+            .text-content {
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Верхнее меню -->
+    <!-- Шапка сайта -->
     <header class="header" id="header">
         <div class="header-container">
             <div class="logo">
-                <img src="Img/ЯЧ.png" alt="Логотип">
+                <img src="Img/ЯЧ.png" alt="Логотип Scripts">
             </div>
             <div class="control-buttons">
                 <a href="index.html"><button class="control-btn">Главная</button></a>
@@ -69,10 +272,10 @@
         </div>
     </header>
 
-    <!-- Индикатор загрузки -->
+    <!-- Оверлей для загрузки -->
     <div class="download-overlay" id="downloadOverlay">
         <div class="download-box">
-            <div class="download-text">Подготовка архива...</div>
+            <div class="download-text" id="downloadText">Подготовка архива...</div>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
@@ -81,10 +284,12 @@
 
     <!-- Основное содержимое -->
     <main class="main-content">
+        <!-- Баннер -->
         <section class="banner-section">
-            <img src="Img/Frame 8.png" alt="Баннер" class="banner-image">
+            <img src="Img/Frame 8.png" alt="Баннер Scripts" class="banner-image">
         </section>
         
+        <!-- Видео-секция -->
         <section class="video-section">
             <div class="video-container">
                 <video id="myVideo" autoplay muted loop>
@@ -97,164 +302,200 @@
             </div>
         </section>
         
+        <!-- Блоки с информацией -->
         <section class="content-block">
-            <img src="Img/Снимок экрана 2025-07-16 114827.png" class="rotated-image" alt="Скриншот">
+            <img src="Img/Снимок экрана 2025-07-16 114827.png" class="rotated-image" alt="Система аккаунтов">
             <div class="text-content">
                 <h2>Система аккаунтов</h2>
-                <p>Ваша личная платформа для роста и развития</p>
+                <p>Ваша личная платформа для роста и развития. Создавайте и управляйте аккаунтами с удобным интерфейсом.</p>
             </div>
         </section>
+        
         <section class="content-block">
-            <img src="Img/Снимок экрана 2025-07-16 114900.png" class="rotated-image" alt="Скриншот">
+            <img src="Img/Снимок экрана 2025-07-16 114900.png" class="rotated-image" alt="Методички WPF">
             <div class="text-content">
                 <h2>Методички на любой вкус</h2>
-                <p>Широкая база методичек WPF</p>
+                <p>Широкая база методичек WPF для всех уровней подготовки. Постоянно обновляемая коллекция.</p>
             </div>
         </section>
+        
         <section class="content-block">
-            <img src="Img/Снимок экрана 2025-07-16 114907.png" class="rotated-image" alt="Скриншот">
+            <img src="Img/Снимок экрана 2025-07-16 114907.png" class="rotated-image" alt="Удобный интерфейс">
             <div class="text-content">
                 <h2>Удобный интерфейс</h2>
-                <p>Всё что нужно для вас ЕСТЬ</p>
+                <p>Интуитивно понятный дизайн. Всё что нужно для работы всегда под рукой.</p>
             </div>
         </section>
+        
         <section class="content-block">
-            <img src="Img/Снимок экрана 2025-07-16 114914.png" class="rotated-image" alt="Скриншот">
+            <img src="Img/Снимок экрана 2025-07-16 114914.png" class="rotated-image" alt="Встроенный Telegram">
             <div class="text-content">
                 <h2>Встроенный Telegram</h2>
-                <p>Чаты и каналы всегда с вами</p>
+                <p>Доступ к чатам и каналам прямо из приложения. Всегда оставайтесь на связи.</p>
             </div>
         </section>
+        
         <section class="content-block">
-            <img src="Img/Снимок экрана 2025-07-16 114920.png" class="rotated-image" alt="Скриншот">
+            <img src="Img/Снимок экрана 2025-07-16 114920.png" class="rotated-image" alt="VK музыка">
             <div class="text-content">
                 <h2>Встроенная VK музыка</h2>
-                <p>Слушай музыку пока работаешь</p>
+                <p>Слушайте любимую музыку во время работы. Интеграция с VK Music.</p>
             </div>
         </section>
     </main>
 
-<script>
-    document.getElementById('downloadBtn').addEventListener('click', createAndDownloadZip);
-    
-    const video = document.getElementById('myVideo');
-    const muteBtn = document.getElementById('muteBtn');
-    
-    muteBtn.addEventListener('click', function() {
-        video.muted = !video.muted;
-        muteBtn.textContent = video.muted ? '🔇' : '🔊';
-    });
-
-    async function createAndDownloadZip() {
+    <!-- Скрипты -->
+    <script>
+        // Проверка загрузки необходимых библиотек
+        function checkLibraries() {
+            if (typeof JSZip === 'undefined') {
+                console.error('JSZip library not loaded');
+                return false;
+            }
+            if (typeof saveAs === 'undefined') {
+                console.error('FileSaver.js library not loaded');
+                return false;
+            }
+            return true;
+        }
+        
+        // Инициализация элементов
+        const downloadBtn = document.getElementById('downloadBtn');
         const overlay = document.getElementById('downloadOverlay');
         const progressBar = document.getElementById('progressBar');
-        const downloadText = document.querySelector('.download-text');
+        const downloadText = document.getElementById('downloadText');
+        const video = document.getElementById('myVideo');
+        const muteBtn = document.getElementById('muteBtn');
         
-        overlay.style.display = 'flex';
-        downloadText.textContent = 'Подготовка архива...';
-        progressBar.style.width = '0%';
+        // Обработчик кнопки скачивания
+        downloadBtn.addEventListener('click', async function() {
+            if (!checkLibraries()) {
+                alert('Не удалось загрузить необходимые библиотеки. Пожалуйста, обновите страницу.');
+                return;
+            }
+            
+            try {
+                await createAndDownloadZip();
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Произошла ошибка при скачивании. Подробности в консоли.');
+            }
+        });
         
-        try {
-            const zip = new JSZip();
-            const filePaths = [
-                "Download/disk2.pak",
-                "Download/disk3.pak",
-                "Download/disk4.pak",
-                "Download/disk5.pak",
-                "Download/disk6.pak",
-                "Download/disk7.pak",
-                "Download/disk8.pak",
-                "Download/disk9.pak",
-                "Download/disk10.pak",
-                "Download/disk11.pak",
-                "Download/disk12.pak",
-                "Download/disk13.pak",
-                "Download/disk14.pak",
-                "Download/disk15.pak",
-                "Download/disk16.pak",
-                "Download/disk17.pak",
-                "Download/disk18.pak",
-                "Download/disk19.pak",
-                "Download/disk20.pak",
-                "Download/disk21.pak",
-                "Download/disk22.pak",
-                "Download/disk23.pak",
-                "Download/SetupScripts.exe"
-            ];
-
-            // Добавляем небольшую задержку между группами
-            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        // Управление звуком видео
+        muteBtn.addEventListener('click', function() {
+            video.muted = !video.muted;
+            muteBtn.textContent = video.muted ? '🔇' : '🔊';
+        });
+        
+        // Функция создания и скачивания ZIP-архива
+        async function createAndDownloadZip() {
+            // Показываем оверлей загрузки
+            overlay.style.display = 'flex';
+            progressBar.style.width = '0%';
+            downloadText.textContent = 'Подготовка архива...';
             
-            // Размер группы и задержка между группами
-            const chunkSize = 4;
-            const delayBetweenChunks = 500; // 0.5 секунды
-            
-            downloadText.textContent = 'Загрузка файлов...';
-            let loadedFiles = 0;
-
-            // Создаем папку в архиве для лучшей организации
-            const folder = zip.folder("ScriptsPackage");
-            
-            for (let i = 0; i < filePaths.length; i += chunkSize) {
-                const chunk = filePaths.slice(i, i + chunkSize);
-                const chunkPromises = chunk.map(async (filePath) => {
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder("ScriptsPackage");
+                
+                // Список файлов для загрузки
+                const filePaths = [
+                    "Download/disk2.pak",
+                    "Download/disk3.pak",
+                    "Download/disk4.pak",
+                    "Download/disk5.pak",
+                    "Download/disk6.pak",
+                    "Download/disk7.pak",
+                    "Download/disk8.pak",
+                    "Download/disk9.pak",
+                    "Download/disk10.pak",
+                    "Download/disk11.pak",
+                    "Download/disk12.pak",
+                    "Download/disk13.pak",
+                    "Download/disk14.pak",
+                    "Download/disk15.pak",
+                    "Download/disk16.pak",
+                    "Download/disk17.pak",
+                    "Download/disk18.pak",
+                    "Download/disk19.pak",
+                    "Download/disk20.pak",
+                    "Download/disk21.pak",
+                    "Download/disk22.pak",
+                    "Download/disk23.pak",
+                    "Download/SetupScripts.exe"
+                ];
+                
+                let loadedCount = 0;
+                const totalFiles = filePaths.length;
+                
+                // Загружаем файлы по очереди
+                for (const filePath of filePaths) {
+                    const fileName = filePath.split('/').pop();
+                    downloadText.textContent = `Загрузка: ${fileName}...`;
+                    
                     try {
                         const response = await fetch(filePath);
                         if (!response.ok) {
-                            console.warn(`Файл ${filePath} не доступен, статус: ${response.status}`);
-                            return null;
+                            throw new Error(`HTTP ${response.status}`);
                         }
+                        
                         const blob = await response.blob();
-                        return { path: filePath.split('/').pop(), blob }; // Используем только имя файла
-                    } catch (error) {
-                        console.error(`Ошибка загрузки ${filePath}:`, error);
-                        return null;
-                    }
-                });
-
-                const results = await Promise.all(chunkPromises);
-                
-                // Добавляем успешные загрузки в архив
-                for (const result of results) {
-                    if (result) {
-                        folder.file(result.path, result.blob);
-                        loadedFiles++;
-                        const progress = Math.round((loadedFiles / filePaths.length) * 100);
+                        folder.file(fileName, blob);
+                        
+                        loadedCount++;
+                        const progress = Math.round((loadedCount / totalFiles) * 100);
                         progressBar.style.width = `${progress}%`;
-                        downloadText.textContent = `Загружено ${loadedFiles} из ${filePaths.length} файлов...`;
+                        downloadText.textContent = `Загружено ${loadedCount} из ${totalFiles} файлов`;
+                        
+                    } catch (error) {
+                        console.error(`Ошибка загрузки ${fileName}:`, error);
+                        // Продолжаем несмотря на ошибку
                     }
                 }
                 
-                // Добавляем задержку между группами
-                if (i + chunkSize < filePaths.length) {
-                    await delay(delayBetweenChunks);
-                }
+                // Генерируем ZIP архив
+                downloadText.textContent = 'Создание архива...';
+                const content = await zip.generateAsync(
+                    { type: "blob" },
+                    (metadata) => {
+                        const progress = Math.round(metadata.percent);
+                        progressBar.style.width = `${progress}%`;
+                        if (progress === 100) {
+                            downloadText.textContent = 'Завершение...';
+                        }
+                    }
+                );
+                
+                // Скачиваем архив
+                saveAs(content, "ScriptsPackage.zip");
+                
+            } catch (error) {
+                console.error('Ошибка создания архива:', error);
+                downloadText.textContent = 'Ошибка создания архива!';
+                progressBar.style.backgroundColor = '#e74c3c';
+                throw error;
+                
+            } finally {
+                // Скрываем оверлей через секунду
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressBar.style.backgroundColor = '#3498db';
+                    downloadText.textContent = 'Подготовка архива...';
+                }, 1000);
             }
-
-            // Генерируем ZIP архив
-            downloadText.textContent = 'Создание архива...';
-            const content = await zip.generateAsync(
-                { type: "blob", streamFiles: true },
-                metadata => {
-                    const progress = Math.round(metadata.percent);
-                    progressBar.style.width = `${progress}%`;
-                }
-            );
-
-            // Скачиваем архив
-            saveAs(content, "ScriptsPackage.zip");
-            
-        } catch (error) {
-            console.error('Критическая ошибка:', error);
-            alert('Произошла ошибка при создании архива. Проверьте консоль для подробностей.');
-        } finally {
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                progressBar.style.width = '0%';
-                downloadText.textContent = 'Подготовка архива...';
-            }, 1000);
         }
-    }
-</script>
+        
+        // Плавная прокрутка для всех ссылок
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
 </body>
 </html>
