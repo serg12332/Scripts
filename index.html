@@ -135,109 +135,96 @@
     </main>
 
     <script>
-        // Обработчик кнопки скачивания
-        document.getElementById('downloadBtn').addEventListener('click', createAndDownloadZip);
-        
-        // Обработчик кнопки звука
-        const video = document.getElementById('myVideo');
-        const muteBtn = document.getElementById('muteBtn');
-        
-        muteBtn.addEventListener('click', function() {
-            if (video.muted) {
-                video.muted = false;
-                muteBtn.textContent = '🔊';
-            } else {
-                video.muted = true;
-                muteBtn.textContent = '🔇';
-            }
-        });
+    document.getElementById('downloadBtn').addEventListener('click', createAndDownloadZip);
+    
+    const video = document.getElementById('myVideo');
+    const muteBtn = document.getElementById('muteBtn');
+    
+    muteBtn.addEventListener('click', function() {
+        video.muted = !video.muted;
+        muteBtn.textContent = video.muted ? '🔇' : '🔊';
+    });
 
-        async function createAndDownloadZip() {
-            const overlay = document.getElementById('downloadOverlay');
-            const progressBar = document.getElementById('progressBar');
+    async function createAndDownloadZip() {
+        const overlay = document.getElementById('downloadOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const downloadText = document.querySelector('.download-text');
+        
+        overlay.style.display = 'flex';
+        downloadText.textContent = 'Подготовка архива...';
+        progressBar.style.width = '0%';
+        
+        try {
+            const zip = new JSZip();
+            const filePaths = [
+                "Download/disk2.pak",
+                "Download/disk3.pak",
+                "Download/disk4.pak",
+                "Download/disk5.pak",
+                "Download/disk6.pak",
+                "Download/disk7.pak",
+                "Download/disk8.pak",
+                "Download/disk9.pak",
+                "Download/disk10.pak",
+                "Download/disk11.pak",
+                "Download/disk12.pak",
+                "Download/disk13.pak",
+                "Download/disk14.pak",
+                "Download/disk15.pak",
+                "Download/disk16.pak",
+                "Download/disk17.pak",
+                "Download/disk18.pak",
+                "Download/disk19.pak",
+                "Download/disk20.pak",
+                "Download/disk21.pak",
+                "Download/disk22.pak",
+                "Download/disk23.pak",
+                "Download/SetupScripts.exe"
+            ];
             
-            // Показываем индикатор загрузки
-            overlay.style.display = 'flex';
+            // Загружаем все файлы параллельно
+            downloadText.textContent = 'Загрузка файлов...';
+            const fetchPromises = filePaths.map(filePath => 
+                fetch(filePath).then(response => {
+                    if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+                    return response.blob();
+                })
+            );
             
-            try {
-                const zip = new JSZip();
-                const filePaths = [
-                    "Download/disk2.pak",
-                    "Download/disk3.pak",
-                    "Download/disk4.pak",
-                    "Download/disk5.pak",
-                    "Download/disk6.pak",
-                    "Download/disk7.pak",
-                    "Download/disk8.pak",
-                    "Download/disk9.pak",
-                    "Download/disk10.pak",
-                    "Download/disk11.pak",
-                    "Download/disk12.pak",
-                    "Download/disk13.pak",
-                    "Download/disk14.pak",
-                    "Download/disk15.pak",
-                    "Download/disk16.pak",
-                    "Download/disk17.pak",
-                    "Download/disk18.pak",
-                    "Download/disk19.pak",
-                    "Download/disk20.pak",
-                    "Download/disk21.pak",
-                    "Download/disk22.pak",
-                    "Download/disk23.pak",
-                    "Download/SetupScripts.exe"
-                ];
-                
-                let loadedFiles = 0;
-                const totalFiles = filePaths.length;
-                
-                // Обновляем прогресс
-                function updateProgress() {
-                    loadedFiles++;
-                    const progress = Math.round((loadedFiles / totalFiles) * 100);
-                    progressBar.style.width = progress + '%';
-                    
-                    if (loadedFiles === totalFiles) {
-                        document.querySelector('.download-text').textContent = 'Завершение...';
-                    }
-                }
-                
-                // Добавляем файлы в архив
-                for (const filePath of filePaths) {
-                    try {
-                        const response = await fetch(filePath);
-                        if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
-                        
-                        const fileContent = await response.blob();
-                        zip.file(filePath, fileContent);
-                        updateProgress();
-                    } catch (error) {
-                        console.error(`Ошибка при обработке файла ${filePath}:`, error);
-                        throw error;
-                    }
-                }
-                
-                // Генерируем архив
-                document.querySelector('.download-text').textContent = 'Создание архива...';
-                const content = await zip.generateAsync({ type: "blob" }, metadata => {
+            const files = await Promise.all(fetchPromises);
+            
+            // Добавляем файлы в ZIP
+            downloadText.textContent = 'Добавление в архив...';
+            files.forEach((fileContent, index) => {
+                zip.file(filePaths[index], fileContent);
+                const progress = Math.round(((index + 1) / filePaths.length) * 100);
+                progressBar.style.width = `${progress}%`;
+            });
+            
+            // Генерируем ZIP
+            downloadText.textContent = 'Создание архива...';
+            const content = await zip.generateAsync(
+                { type: "blob", streamFiles: true }, 
+                metadata => {
                     const progress = Math.round(metadata.percent);
-                    progressBar.style.width = progress + '%';
-                });
-                
-                // Скачиваем архив
-                saveAs(content, "archive.zip");
-                
-            } catch (error) {
-                console.error('Ошибка при создании архива:', error);
-                alert('Произошла ошибка при создании архива: ' + error.message);
-            } finally {
-                // Скрываем индикатор через 1 секунду после завершения/ошибки
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                    progressBar.style.width = '0%';
-                    document.querySelector('.download-text').textContent = 'Подготовка архива...';
-                }, 1000);
-            }
+                    progressBar.style.width = `${progress}%`;
+                }
+            );
+            
+            // Скачиваем
+            saveAs(content, "archive.zip");
+            
+        } catch (error) {
+            console.error('Ошибка при создании архива:', error);
+            alert('Произошла ошибка: ' + error.message);
+        } finally {
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                progressBar.style.width = '0%';
+                downloadText.textContent = 'Подготовка архива...';
+            }, 1000);
         }
-    </script>
+    }
+</script>
 </body>
 </html>
