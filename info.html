@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/Style.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="img/ЯЧ.png" alt="Логотип">
+            </div>
+            <div class="control-buttons">
+                <a href="index.html"><button class="control-btn">Главная</button></a>
+                <a href="/Download/SetupScripts.exe"><button class="control-btn">Скачать</button></a>
+                <a href="info.html"><button class="control-btn">О нас</button></a>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        ПУСТО
+    </main>
+
+<script>
+    document.getElementById('downloadBtn').addEventListener('click', createAndDownloadZip);
+    
+    const video = document.getElementById('myVideo');
+    const muteBtn = document.getElementById('muteBtn');
+    
+    muteBtn.addEventListener('click', function() {
+        video.muted = !video.muted;
+        muteBtn.textContent = video.muted ? '🔇' : '🔊';
+    });
+
+    async function createAndDownloadZip() {
+        const overlay = document.getElementById('downloadOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const downloadText = document.querySelector('.download-text');
+        
+        overlay.style.display = 'flex';
+        downloadText.textContent = 'Подготовка архива...';
+        progressBar.style.width = '0%';
+        
+        try {
+            const zip = new JSZip();
+            const filePaths = [
+                "Download/disk2.pak",
+                "Download/disk3.pak",
+                "Download/disk4.pak",
+                "Download/disk5.pak",
+                "Download/disk6.pak",
+                "Download/disk7.pak",
+                "Download/disk8.pak",
+                "Download/disk9.pak",
+                "Download/disk10.pak",
+                "Download/disk11.pak",
+                "Download/disk12.pak",
+                "Download/disk13.pak",
+                "Download/disk14.pak",
+                "Download/disk15.pak",
+                "Download/disk16.pak",
+                "Download/disk17.pak",
+                "Download/disk18.pak",
+                "Download/disk19.pak",
+                "Download/disk20.pak",
+                "Download/disk21.pak",
+                "Download/disk22.pak",
+                "Download/disk23.pak",
+                "Download/SetupScripts.exe"
+            ];
+
+            // Добавляем небольшую задержку между группами
+            const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+            
+            // Размер группы и задержка между группами
+            const chunkSize = 4;
+            const delayBetweenChunks = 500; // 0.5 секунды
+            
+            downloadText.textContent = 'Загрузка файлов...';
+            let loadedFiles = 0;
+
+            // Создаем папку в архиве для лучшей организации
+            const folder = zip.folder("ScriptsPackage");
+            
+            for (let i = 0; i < filePaths.length; i += chunkSize) {
+                const chunk = filePaths.slice(i, i + chunkSize);
+                const chunkPromises = chunk.map(async (filePath) => {
+                    try {
+                        const response = await fetch(filePath);
+                        if (!response.ok) {
+                            console.warn(`Файл ${filePath} не доступен, статус: ${response.status}`);
+                            return null;
+                        }
+                        const blob = await response.blob();
+                        return { path: filePath.split('/').pop(), blob }; // Используем только имя файла
+                    } catch (error) {
+                        console.error(`Ошибка загрузки ${filePath}:`, error);
+                        return null;
+                    }
+                });
+
+                const results = await Promise.all(chunkPromises);
+                
+                // Добавляем успешные загрузки в архив
+                for (const result of results) {
+                    if (result) {
+                        folder.file(result.path, result.blob);
+                        loadedFiles++;
+                        const progress = Math.round((loadedFiles / filePaths.length) * 100);
+                        progressBar.style.width = `${progress}%`;
+                        downloadText.textContent = `Загружено ${loadedFiles} из ${filePaths.length} файлов...`;
+                    }
+                }
+                
+                // Добавляем задержку между группами
+                if (i + chunkSize < filePaths.length) {
+                    await delay(delayBetweenChunks);
+                }
+            }
+
+            // Генерируем ZIP архив
+            downloadText.textContent = 'Создание архива...';
+            const content = await zip.generateAsync(
+                { type: "blob", streamFiles: true },
+                metadata => {
+                    const progress = Math.round(metadata.percent);
+                    progressBar.style.width = `${progress}%`;
+                }
+            );
+
+            // Скачиваем архив
+            saveAs(content, "ScriptsPackage.zip");
+            
+        } catch (error) {
+            console.error('Критическая ошибка:', error);
+            alert('Произошла ошибка при создании архива. Проверьте консоль для подробностей.');
+        } finally {
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                progressBar.style.width = '0%';
+                downloadText.textContent = 'Подготовка архива...';
+            }, 1000);
+        }
+    }
+</script>
+</body>
+</html>

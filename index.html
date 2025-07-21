@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripts - Главная</title>
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="css/Style.css">
+    <!-- Подключение библиотек для работы с ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="Img/ЯЧ.png" alt="Логотип Scripts">
+            </div>
+            <div class="control-buttons">
+                <a href="index.html"><button class="control-btn">Главная</button></a>
+                <a href="/Download/SetupScripts.exe"><button class="control-btn">Скачать</button></a>
+                <a href="info.html"><button class="control-btn">О нас</button></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Оверлей для загрузки -->
+    <div class="download-overlay" id="downloadOverlay">
+        <div class="download-box">
+            <div class="download-text" id="downloadText">Подготовка архива...</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основное содержимое -->
+    <main class="main-content">
+        <!-- Баннер -->
+        <section class="banner-section">
+            <img src="Img/Frame 8.png" alt="Баннер Scripts" class="banner-image">
+        </section>
+        
+        <!-- Видео-секция -->
+        <section class="video-section">
+            <div class="video-container">
+                <video id="myVideo" autoplay muted loop>
+                    <source src="Vid/ркм.mp4" type="video/mp4">
+                    Ваш браузер не поддерживает видео.
+                </video>
+                <div class="custom-controls">
+                    <button id="muteBtn" class="mute-btn">🔇</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Блоки с информацией -->
+        <section class="content-block">
+            <img src="Img/Снимок экрана 2025-07-16 114827.png" class="rotated-image" alt="Система аккаунтов">
+            <div class="text-content">
+                <h2>Система аккаунтов</h2>
+                <p>Ваша личная платформа для роста и развития. Создавайте и управляйте аккаунтами с удобным интерфейсом.</p>
+            </div>
+        </section>
+        
+        <section class="content-block">
+            <img src="Img/Снимок экрана 2025-07-16 114900.png" class="rotated-image" alt="Методички WPF">
+            <div class="text-content">
+                <h2>Методички на любой вкус</h2>
+                <p>Широкая база методичек WPF для всех уровней подготовки. Постоянно обновляемая коллекция.</p>
+            </div>
+        </section>
+        
+        <section class="content-block">
+            <img src="Img/Снимок экрана 2025-07-16 114907.png" class="rotated-image" alt="Удобный интерфейс">
+            <div class="text-content">
+                <h2>Удобный интерфейс</h2>
+                <p>Интуитивно понятный дизайн. Всё что нужно для работы всегда под рукой.</p>
+            </div>
+        </section>
+        
+        <section class="content-block">
+            <img src="Img/Снимок экрана 2025-07-16 114914.png" class="rotated-image" alt="Встроенный Telegram">
+            <div class="text-content">
+                <h2>Встроенный Telegram</h2>
+                <p>Доступ к чатам и каналам прямо из приложения. Всегда оставайтесь на связи.</p>
+            </div>
+        </section>
+        
+        <section class="content-block">
+            <img src="Img/Снимок экрана 2025-07-16 114920.png" class="rotated-image" alt="VK музыка">
+            <div class="text-content">
+                <h2>Встроенная VK музыка</h2>
+                <p>Слушайте любимую музыку во время работы. Интеграция с VK Music.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Скрипты -->
+    <script>
+        // Проверка загрузки необходимых библиотек
+        function checkLibraries() {
+            if (typeof JSZip === 'undefined') {
+                console.error('JSZip library not loaded');
+                return false;
+            }
+            if (typeof saveAs === 'undefined') {
+                console.error('FileSaver.js library not loaded');
+                return false;
+            }
+            return true;
+        }
+        
+        // Инициализация элементов
+        const downloadBtn = document.getElementById('downloadBtn');
+        const overlay = document.getElementById('downloadOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const downloadText = document.getElementById('downloadText');
+        const video = document.getElementById('myVideo');
+        const muteBtn = document.getElementById('muteBtn');
+        
+        // Обработчик кнопки скачивания
+        downloadBtn.addEventListener('click', async function() {
+            if (!checkLibraries()) {
+                alert('Не удалось загрузить необходимые библиотеки. Пожалуйста, обновите страницу.');
+                return;
+            }
+            
+            try {
+                await createAndDownloadZip();
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Произошла ошибка при скачивании. Подробности в консоли.');
+            }
+        });
+        
+        // Управление звуком видео
+        muteBtn.addEventListener('click', function() {
+            video.muted = !video.muted;
+            muteBtn.textContent = video.muted ? '🔇' : '🔊';
+        });
+        
+        // Функция создания и скачивания ZIP-архива
+        async function createAndDownloadZip() {
+            // Показываем оверлей загрузки
+            overlay.style.display = 'flex';
+            progressBar.style.width = '0%';
+            downloadText.textContent = 'Подготовка архива...';
+            
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder("ScriptsPackage");
+                
+                // Список файлов для загрузки
+                const filePaths = [
+                    "Download/disk2.pak",
+                    "Download/disk3.pak",
+                    "Download/disk4.pak",
+                    "Download/disk5.pak",
+                    "Download/disk6.pak",
+                    "Download/disk7.pak",
+                    "Download/disk8.pak",
+                    "Download/disk9.pak",
+                    "Download/disk10.pak",
+                    "Download/disk11.pak",
+                    "Download/disk12.pak",
+                    "Download/disk13.pak",
+                    "Download/disk14.pak",
+                    "Download/disk15.pak",
+                    "Download/disk16.pak",
+                    "Download/disk17.pak",
+                    "Download/disk18.pak",
+                    "Download/disk19.pak",
+                    "Download/disk20.pak",
+                    "Download/disk21.pak",
+                    "Download/disk22.pak",
+                    "Download/disk23.pak",
+                    "Download/SetupScripts.exe"
+                ];
+                
+                let loadedCount = 0;
+                const totalFiles = filePaths.length;
+                
+                // Загружаем файлы по очереди
+                for (const filePath of filePaths) {
+                    const fileName = filePath.split('/').pop();
+                    downloadText.textContent = `Загрузка: ${fileName}...`;
+                    
+                    try {
+                        const response = await fetch(filePath);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        
+                        const blob = await response.blob();
+                        folder.file(fileName, blob);
+                        
+                        loadedCount++;
+                        const progress = Math.round((loadedCount / totalFiles) * 100);
+                        progressBar.style.width = `${progress}%`;
+                        downloadText.textContent = `Загружено ${loadedCount} из ${totalFiles} файлов`;
+                        
+                    } catch (error) {
+                        console.error(`Ошибка загрузки ${fileName}:`, error);
+                        // Продолжаем несмотря на ошибку
+                    }
+                }
+                
+                // Генерируем ZIP архив
+                downloadText.textContent = 'Создание архива...';
+                const content = await zip.generateAsync(
+                    { type: "blob" },
+                    (metadata) => {
+                        const progress = Math.round(metadata.percent);
+                        progressBar.style.width = `${progress}%`;
+                        if (progress === 100) {
+                            downloadText.textContent = 'Завершение...';
+                        }
+                    }
+                );
+                
+                // Скачиваем архив
+                saveAs(content, "ScriptsPackage.zip");
+                
+            } catch (error) {
+                console.error('Ошибка создания архива:', error);
+                downloadText.textContent = 'Ошибка создания архива!';
+                progressBar.style.backgroundColor = '#e74c3c';
+                throw error;
+                
+            } finally {
+                // Скрываем оверлей через секунду
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressBar.style.backgroundColor = '#3498db';
+                    downloadText.textContent = 'Подготовка архива...';
+                }, 1000);
+            }
+        }
+        
+        // Плавная прокрутка для всех ссылок
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
